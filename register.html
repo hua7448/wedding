@@ -235,19 +235,28 @@
   const toast = (msg)=>{ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); };
   const showErr = (msg)=>{ const e=document.getElementById('errBox'); e.textContent=msg; e.classList.add('show'); };
 
-  /* 券面素材池：每个号码固定抽到同一组（重扫不变，不同号码不同款） */
+  /* 券面素材池：每个号码固定抽到同一组（重扫不变，不同号码不同款）
+     pos = 背景图纵向焦点（按每张图的构图逐张标定，保证新人面部在可视区） */
   const CARTOONS = ['cartoon','cartoon2','cartoon3','cartoon4','cartoon5','cartoon6',
                     'cartoon7','cartoon8','cartoon9','cartoon10','cartoon11']
                     .map(n=>'assets/img/'+n+'.jpg');
-  const TICKET_BGS = ['poster','bg1','bg2','bg3','bg4'].map(n=>'assets/img/'+n+'.jpg');
+  const TICKET_BGS = [
+    {src:'assets/img/poster.jpg', pos:'center 20%'},   // 红底囍字海报：面部在上部
+    {src:'assets/img/bg1.jpg',    pos:'center 22%'},   // 树下亲吻：面部偏上
+    {src:'assets/img/bg2.jpg',    pos:'center 58%'},   // 草坪挥手：人物在中下段
+    {src:'assets/img/bg3.jpg',    pos:'center 38%'},   // 牵手奔跑（横图）：人物中段
+    {src:'assets/img/bg4.jpg',    pos:'center 38%'},   // 依偎：人物中段偏上
+  ];
   function pickByNum(arr, num){
     const n = parseInt(num, 10);
     return arr[(isNaN(n)?0:n) % arr.length];
   }
 
   function renderTicket(g, existed){
-    document.querySelector('#ticketCard .ticket-photo').style.backgroundImage =
-      'url("'+pickByNum(TICKET_BGS, g.num)+'")';
+    const bg = pickByNum(TICKET_BGS, g.num);
+    const photoEl = document.querySelector('#ticketCard .ticket-photo');
+    photoEl.style.backgroundImage = 'url("'+bg.src+'")';
+    photoEl.style.backgroundPosition = bg.pos;
     document.querySelector('#ticketCard .avatar img').src = pickByNum(CARTOONS, g.num);
     document.getElementById('tkNum').textContent = g.num;
     document.getElementById('tkNumCap').textContent = 'No.' + g.num;

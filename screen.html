@@ -183,19 +183,45 @@
   document.getElementById('idleNames').textContent = cfg.groom + ' · ' + cfg.bride;
   document.getElementById('idleDate').textContent = cfg.date + (cfg.venue ? ' · ' + cfg.venue : '');
 
-  /* ---------- 音效 ---------- */
-  const sfx = {
-    tick:  new Audio('assets/audio/tick.mp3'),
-    chime: new Audio('assets/audio/chime.mp3'),
-    cheer: new Audio('assets/audio/cheer.mp3'),
-  };
-  sfx.tick.loop = true; sfx.tick.volume = .5;
-  sfx.chime.volume = .9; sfx.cheer.volume = .9;
+  /* ---------- 音效（WebAudio 方案） ----------
+     原因：HTMLAudio 的 play() 受浏览器自动播放策略约束，部分浏览器（尤其 Safari）
+     只在每次用户手势的瞬间放行，手势结束后程序再 play() 就会被静默拒绝——
+     表现为"点击开启时响一下，之后滚动/定格都没声"。
+     WebAudio 的 AudioContext 只需在用户手势里 resume() 一次，之后随时可播。 */
+  const AC = new (window.AudioContext || window.webkitAudioContext)();
+  const sfxBuf = {};
+  let tickNode = null;
+  ['tick','chime','cheer'].forEach(n=>{
+    fetch('assets/audio/'+n+'.mp3')
+      .then(r=>r.arrayBuffer())
+      .then(b=>AC.decodeAudioData(b))
+      .then(buf=>{ sfxBuf[n]=buf; })
+      .catch(()=>{});
+  });
+  function playBuf(name, opts){
+    opts = opts || {};
+    const buf = sfxBuf[name];
+    if (!buf || AC.state !== 'running') return null;
+    const src = AC.createBufferSource(); src.buffer = buf; src.loop = !!opts.loop;
+    const g = AC.createGain(); g.gain.value = (opts.volume != null ? opts.volume : 1);
+    src.connect(g); g.connect(AC.destination); src.start();
+    return { src, g };
+  }
+  function tickStart(){ tickStop(); tickNode = playBuf('tick', { loop:true, volume:.5 }); }
+  function tickStop(){
+    if (tickNode){
+      try { tickNode.g.gain.linearRampToValueAtTime(0, AC.currentTime + .18);
+            tickNode.src.stop(AC.currentTime + .2); } catch(e){}
+      tickNode = null;
+    }
+  }
+  function playChime(){ playBuf('chime', { volume:.9 }); }
+  function playCheer(){ playBuf('cheer', { volume:.9 }); }
 
-  /* ---------- 解锁门 ---------- */
+  /* ---------- 解锁门：手势内 resume 音频上下文（静默解锁，不再有"响一下"的杂音） ---------- */
   const gate = document.getElementById('gate');
   gate.addEventListener('click', ()=>{
-    Object.values(sfx).forEach(a=>{ a.play().then(()=>a.pause()).catch(()=>{}); a.currentTime=0; });
+    AC.resume();
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
     gate.classList.add('hide');
   }, {once:false});
@@ -289,12 +315,12 @@
       nameEl.querySelector('.inner').textContent = winners[s].name;
       nameEl.classList.add('reveal');
       slot.classList.add('won');
-      sfx.chime.currentTime = 0; sfx.chime.play().catch(()=>{});
+      playChime();
       await new Promise(r=>setTimeout(r, 900));   // 欢呼间隔，节奏感
     }
     clearInterval(nameTimer);
-    sfx.tick.pause();
-    sfx.cheer.currentTime = 0; sfx.cheer.play().catch(()=>{});
+    tickStop();
+    playCheer();
     document.getElementById('bravo').classList.add('show');
     fireConfetti();
   }
@@ -352,7 +378,7 @@
     buildSlots(msg.count);
     slotsEl.querySelectorAll('.strip').forEach(s=>s.classList.add('rolling'));
     startNames(Array.from(slotsEl.querySelectorAll('.slot-name')), names);
-    sfx.tick.currentTime = 0; sfx.tick.play().catch(()=>{});
+    tickStart();
   }
   function enterStop(msg){
     if (!rolling) enterRoll(msg);   // 兜底：没收到滚动指令也能定格
@@ -361,7 +387,7 @@
   function enterIdle(){
     rolling = false;
     clearInterval(nameTimer);
-    sfx.tick.pause();
+    tickStop();
     document.getElementById('bravo').classList.remove('show');
     stage.classList.remove('on');
     idle.classList.remove('hide');
