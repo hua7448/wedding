@@ -1,0 +1,103 @@
+/* ============================================================
+   黄继安 · 聂玮婷 婚礼抽奖 — 公共设计系统
+   奶油纸纹 + 香槟金箔 + 高对比衬线 + 颗粒质感
+   ============================================================ */
+:root{
+  --ivory:#FAF6EC;
+  --cream:#F3EAD6;
+  --paper:#FFFDF6;
+  --gold:#B98E4E;
+  --gold-deep:#8C6A33;
+  --gold-light:#E7CD9A;
+  --gold-foil:linear-gradient(105deg,#8C6A33 0%,#C9A25C 28%,#F0DCA8 50%,#C9A25C 72%,#8C6A33 100%);
+  --ink:#3B2E22;
+  --ink-soft:#7A6A56;
+  --red:#9E2B25;
+  --red-deep:#7C1F1A;
+  --hairline:rgba(140,106,51,.38);
+  --serif:"Didot","Bodoni MT","Playfair Display","Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --shadow-soft:6px 8px 24px rgba(123,94,60,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ivory);
+  color:var(--ink);
+  font-family:var(--sans);
+  min-height:100vh;
+  line-height:1.6;
+}
+/* 纸纹颗粒覆层 — 整页胶片质感 */
+body::after{
+  content:"";position:fixed;inset:0;z-index:9990;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity:.07;mix-blend-mode:multiply;
+}
+::selection{background:var(--gold-light);color:var(--ink)}
+
+/* ---------- 通用排版 ---------- */
+.serif{font-family:var(--serif)}
+.eyebrow{
+  font-family:var(--sans);font-size:11px;letter-spacing:.42em;text-indent:.42em;
+  color:var(--gold-deep);text-transform:uppercase;font-weight:600;
+}
+.hairline{width:56px;height:1px;background:var(--hairline);margin:14px auto}
+.gold-text{
+  background:var(--gold-foil);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--sans);font-size:15px;font-weight:600;letter-spacing:.14em;text-indent:.14em;
+  padding:14px 34px;border-radius:100vw;cursor:pointer;border:1px solid transparent;
+  transition:all .3s ease-in-out;text-decoration:none;user-select:none;
+}
+.btn-gold{background:var(--gold);color:#fff;overflow:hidden;position:relative}
+.btn-gold:hover{background:var(--gold-deep)}
+.btn-gold:disabled{background:#C9BFA9;cursor:not-allowed}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:var(--red-deep)}
+.btn-red:disabled{background:#D3B3AF;cursor:not-allowed}
+.btn-ghost{background:transparent;border-color:var(--hairline);color:var(--ink-soft)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-deep)}
+.btn-sm{padding:8px 18px;font-size:13px}
+
+/* ---------- 表单 ---------- */
+.field{margin-bottom:18px;text-align:left}
+.field label{
+  display:block;font-size:12px;letter-spacing:.28em;color:var(--gold-deep);
+  margin-bottom:8px;font-weight:600;
+}
+.field input,.field textarea,.field select{
+  width:100%;padding:13px 16px;font-size:16px;font-family:var(--sans);
+  background:var(--paper);border:1px solid var(--hairline);border-radius:3px;
+  color:var(--ink);outline:none;transition:border-color .25s,box-shadow .25s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,142,78,.14);
+}
+.field .hint{font-size:12px;color:var(--ink-soft);margin-top:6px;letter-spacing:.05em}
+
+/* ---------- 植物线描（金色枝叶） ---------- */
+.botanical{position:absolute;pointer-events:none;opacity:.9}
+.botanical svg{display:block;overflow:visible}
+.botanical path,.botanical ellipse,.botanical circle{
+  fill:none;stroke:var(--gold);stroke-width:1.1;stroke-linecap:round;
+}
+
+/* ---------- 页面通用壳 ---------- */
+.page{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.mono{
+  font-family:var(--serif);font-size:15px;letter-spacing:.34em;text-indent:.34em;
+  color:var(--ink-soft);
+}
+.toast{
+  position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--ivory);font-size:14px;letter-spacing:.1em;
+  padding:12px 26px;border-radius:100vw;opacity:0;transition:all .35s ease;
+  z-index:9999;pointer-events:none;max-width:86vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}

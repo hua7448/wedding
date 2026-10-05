@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>抽奖控制台 · 黄继安 &amp; 聂玮婷</title>
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  body{background:var(--ivory)}
+  .wrap{width:100%;max-width:760px;margin:0 auto;padding:34px 20px 80px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .topbar .t{font-family:var(--serif);font-size:24px;letter-spacing:.2em}
+  .nav{display:flex;gap:8px;flex-wrap:wrap}
+  .nav a{font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-decoration:none;
+    border:1px solid var(--hairline);border-radius:100vw;padding:7px 16px;transition:all .25s}
+  .nav a:hover{border-color:var(--gold);color:var(--gold-deep)}
+  .stats{display:flex;gap:0;margin-top:26px;border:1px solid var(--hairline);border-radius:6px;overflow:hidden;background:var(--paper)}
+  .stat{flex:1;text-align:center;padding:16px 6px;border-right:1px solid var(--hairline)}
+  .stat:last-child{border-right:none}
+  .stat .n{font-family:var(--serif);font-size:34px;color:var(--gold-deep);line-height:1.1}
+  .stat .k{font-size:11px;letter-spacing:.26em;color:var(--ink-soft);margin-top:4px}
+  .box{background:var(--paper);border:1px solid var(--hairline);border-radius:6px;
+    padding:26px 24px;margin-top:22px;box-shadow:var(--shadow-soft)}
+  .box h2{font-family:var(--serif);font-size:17px;letter-spacing:.24em;font-weight:700;margin-bottom:16px;
+    display:flex;align-items:center;gap:12px}
+  .box h2::after{content:"";flex:1;height:1px;background:var(--hairline)}
+
+  /* 奖项选择 */
+  .prize-list{display:flex;flex-direction:column;gap:10px}
+  .prize-item{
+    display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--hairline);
+    border-radius:4px;cursor:pointer;transition:all .25s;background:var(--paper);
+  }
+  .prize-item:hover{border-color:var(--gold)}
+  .prize-item.sel{border-color:var(--gold);background:#FBF4E4;box-shadow:inset 0 0 0 1px var(--gold)}
+  .prize-item.done{opacity:.45}
+  .prize-item .dot{width:14px;height:14px;border-radius:50%;border:1px solid var(--gold);flex:none;position:relative}
+  .prize-item.sel .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--gold)}
+  .prize-item .nm{font-family:var(--serif);font-size:18px;letter-spacing:.12em;min-width:70px}
+  .prize-item .ds{font-size:12px;color:var(--ink-soft);flex:1;letter-spacing:.06em}
+  .prize-item .pg{font-size:13px;color:var(--gold-deep);letter-spacing:.08em;white-space:nowrap}
+
+  .round-line{margin:18px 0 6px;text-align:center;font-size:14px;color:var(--ink-soft);letter-spacing:.18em}
+  .round-line b{color:var(--red);font-family:var(--serif);font-size:18px}
+  .ctrl-btns{display:flex;gap:14px;margin-top:16px}
+  .ctrl-btns .btn{flex:1;padding:18px 10px;font-size:17px}
+  .sub-btns{display:flex;gap:10px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .chip{
+    display:flex;align-items:center;gap:10px;background:#FBF4E4;border:1px solid var(--gold);
+    border-radius:100vw;padding:8px 10px 8px 18px;font-size:14px;
+  }
+  .chip .num{font-family:var(--serif);font-size:18px;color:var(--red);font-weight:700;letter-spacing:.06em}
+  .chip button{
+    border:none;background:transparent;color:var(--ink-soft);font-size:12px;cursor:pointer;
+    border-left:1px solid var(--hairline);padding-left:10px;letter-spacing:.1em;
+  }
+  .chip button:hover{color:var(--red)}
+
+  /* 记录表 */
+  .tbl-wrap{overflow-x:auto;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:620px}
+  th{font-size:11px;letter-spacing:.2em;color:var(--gold-deep);font-weight:600;text-align:left;
+    padding:10px 8px;border-bottom:1px solid var(--gold)}
+  td{padding:10px 8px;border-bottom:1px solid rgba(140,106,51,.16);vertical-align:middle}
+  td.num{font-family:var(--serif);font-weight:700;color:var(--red);font-size:15px;letter-spacing:.06em}
+  .st{font-size:11px;padding:3px 10px;border-radius:100vw;letter-spacing:.1em;white-space:nowrap}
+  .st-win{background:#FBF4E4;color:var(--gold-deep);border:1px solid var(--gold)}
+  .st-claimed{background:#EEF4E8;color:#4E6B3A;border:1px solid #A9C191}
+  .st-void{background:#F3EDE6;color:#9A8B78;border:1px solid #D8CCBA;text-decoration:line-through}
+  .row-void{opacity:.5}
+  .mini-btn{border:1px solid var(--hairline);background:transparent;border-radius:100vw;
+    font-size:11px;padding:4px 12px;cursor:pointer;color:var(--ink-soft);letter-spacing:.08em;white-space:nowrap}
+  .mini-btn:hover{border-color:var(--red);color:var(--red)}
+  .empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:26px 0;letter-spacing:.14em}
+
+  .link-row{display:flex;gap:10px;align-items:center}
+  .link-row input{flex:1;padding:11px 14px;font-size:13px;border:1px solid var(--hairline);
+    border-radius:3px;background:var(--ivory);color:var(--ink-soft)}
+  .danger{border-color:#D8B4AE}
+  .danger h2{color:var(--red-deep)}
+  .note{font-size:12px;color:var(--ink-soft);letter-spacing:.06em;line-height:2;margin-top:10px}
+
+  /* 密码门 */
+  .gate{position:fixed;inset:0;background:var(--ivory);z-index:500;display:flex;
+    align-items:center;justify-content:center;padding:20px}
+  .gate.hide{display:none}
+  .gate-card{width:100%;max-width:380px;background:var(--paper);border:1px solid var(--hairline);
+    border-radius:6px;padding:40px 32px;text-align:center;box-shadow:var(--shadow-soft)}
+  .gate-card .m{font-family:var(--serif);font-size:34px;margin-bottom:6px}
+  .gate-card .m em{font-style:italic;color:var(--gold);font-size:26px}
+  .gate-card p{font-size:12px;color:var(--ink-soft);letter-spacing:.2em;margin-bottom:24px}
+  .gate-card .err{color:var(--red);font-size:13px;margin-top:12px;display:none}
+</style>
+</head>
+<body>
+
+<!-- 密码门 -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="m">H<em>&amp;</em>N</div>
+    <p>控制台 · 请输入管理密码</p>
+    <div class="field"><input id="passIn" type="password" placeholder="管理密码（默认 hn2026）"></div>
+    <button class="btn btn-gold btn-block" style="width:100%" id="passBtn">进入控制台</button>
+    <div class="err" id="passErr">密码不正确</div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="visibility:hidden">
+  <div class="topbar">
+    <div class="t">抽奖控制台</div>
+    <div class="nav">
+      <a href="screen.html" target="_blank">打开大屏 ↗</a>
+      <a href="config.html">奖项配置</a>
+      <a href="register.html" target="_blank">领券页 ↗</a>
+      <a href="index.html">首页</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" id="stPool">0</div><div class="k">号码池</div></div>
+    <div class="stat"><div class="n" id="stGuests">0</div><div class="k">已登记</div></div>
+    <div class="stat"><div class="n" id="stWinners">0</div><div class="k">已中奖</div></div>
+  </div>
+
+  <!-- 抽奖控制 -->
+  <div class="box">
+    <h2>抽奖控制</h2>
+    <div class="prize-list" id="prizeList"></div>
+    <div class="round-line" id="roundLine"></div>
+    <div class="ctrl-btns">
+      <button class="btn btn-gold" id="btnRoll">开始滚动</button>
+      <button class="btn btn-red" id="btnStop" disabled>定格开奖</button>
+    </div>
+    <div class="sub-btns">
+      <button class="btn btn-ghost btn-sm" id="btnRedraw" style="display:none">补抽 1 名</button>
+      <button class="btn btn-ghost btn-sm" id="btnIdle" style="display:none">大屏返回待机</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- 中奖记录 -->
+  <div class="box">
+    <h2>中奖记录</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>时间</th><th>奖项</th><th>号码</th><th>姓名</th><th>手机号</th><th>防伪码</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+      <div class="empty" id="recordEmpty">暂无中奖记录 · 抽出的号码会实时出现在这里</div>
+    </div>
+    <div class="sub-btns" style="margin-top:18px">
+      <button class="btn btn-ghost btn-sm" id="btnExportWin">导出中奖记录 CSV</button>
+      <button class="btn btn-ghost btn-sm" id="btnExportGuests">导出到场名单 CSV</button>
+    </div>
+  </div>
+
+  <!-- 宾客名单 -->
+  <div class="box">
+    <h2>宾客名单</h2>
+    <div class="link-row" style="margin-bottom:14px">
+      <input id="guestSearch" placeholder="搜索：姓名 / 手机号 / 号码 / 祝福语关键词">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>号码</th><th>姓名</th><th>手机号</th><th>祝福语</th><th>登记时间</th><th>状态</th></tr></thead>
+        <tbody id="guestBody"></tbody>
+      </table>
+      <div class="empty" id="guestEmpty">暂无登记宾客 · 宾客扫码领券后实时出现在这里</div>
+    </div>
+    <div class="note" id="guestCount"></div>
+  </div>
+
+  <!-- 领券入口 -->
+  <div class="box">
+    <h2>宾客领券入口</h2>
+    <div class="link-row">
+      <input id="regLink" readonly>
+      <button class="btn btn-ghost btn-sm" id="btnCopy">复制</button>
+    </div>
+    <div class="note" id="modeNote">将此链接做成二维码印在桌卡上，宾客扫码即可领券。</div>
+  </div>
+
+  <!-- 数据 -->
+  <div class="box danger">
+    <h2>数据管理</h2>
+    <div class="sub-btns" style="justify-content:flex-start">
+      <button class="btn btn-ghost btn-sm" id="btnReset">清空全部宾客与中奖数据</button>
+    </div>
+    <div class="note">用于婚礼前演练后重置。清空后号码从 No.001 重新发放，奖项配置保留。</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/js/storage.js"></script>
+<script>
+(async function(){
+  const $ = id => document.getElementById(id);
+  const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); };
+
+  /* ---------- 密码门 ---------- */
+  await WL.ready;
+  $('modeNote').textContent = WL.mode()==='server'
+    ? '已连接后端服务：宾客手机扫码登记后，号码实时汇总到本控制台与大屏，数据保存在服务器 data.db（另有 data_backup.json 备份），刷新/重启不丢。'
+    : '当前为本地模式（未检测到 server.py）：数据只保存在本浏览器中，大屏页与本控制台需在同一浏览器的不同标签页打开。启动 server.py 后自动切换为服务器模式。';
+
+  if (WL.getPass()) enter();
+  $('passBtn').addEventListener('click', tryPass);
+  $('passIn').addEventListener('keydown', e=>{ if(e.key==='Enter') tryPass(); });
+  async function tryPass(){
+    const ok = await WL.checkPass($('passIn').value.trim());
+    if (ok){ WL.setPass($('passIn').value.trim()); enter(); }
+    else $('passErr').style.display='block';
+  }
+  function enter(){ $('gate').classList.add('hide'); $('app').style.visibility='visible'; refresh(); }
+
+  /* ---------- 状态 ---------- */
+  let st = null;            // 服务器快照 {guests,pool,winners,prizeDrawn,config,guestList}
+  let selPrizeId = null;
+  let phase = 'idle';       // idle | rolling | revealed | redraw
+  let roundWinners = [];    // 本轮中奖记录（完整对象）
+  let curRoundLabel = '';
+  let curCount = 0;
+
+  function prizes(){ return st ? st.config.prizes : []; }
+  function prize(){ return prizes().find(p=>p.id===selPrizeId); }
+  function drawnOf(pid){ return (st && st.prizeDrawn[pid]) || 0; }
+  function remaining(p){ return p.count - drawnOf(p.id); }
+  function roundNo(p){ return Math.floor(drawnOf(p.id)/p.perRound)+1; }
+  function roundCount(p){ return Math.min(p.perRound, remaining(p)); }
+
+  /* ---------- 渲染 ---------- */
+  async function refresh(){
+    try { st = await WL.state(); }
+    catch(e){
+      if (e.status===403){ $('gate').classList.remove('hide'); $('app').style.visibility='hidden'; toast('登录已失效，请重新输入密码'); }
+      else toast('数据加载失败：'+(e.message||'网络异常'));
+      return;
+    }
+    if (!selPrizeId || !prize()){
+      const firstAvail = prizes().find(p=>remaining(p)>0) || prizes()[0];
+      selPrizeId = firstAvail ? firstAvail.id : null;
+    }
+    $('stPool').textContent = st.pool;
+    $('stGuests').textContent = st.guests;
+    $('stWinners').textContent = st.winners.filter(w=>w.status!=='void').length;
+    renderPrizes(); renderRecords(); renderRoundLine(); renderGuests();
+  }
+  /* ---------- 宾客名单 ---------- */
+  function winnerStatusOf(num){
+    const w = st.winners.find(x=>x.num===num && x.status!=='void');
+    if (!w) return null;
+    return w.status==='claimed' ? {t:'已兑奖 · '+w.prizeName, c:'st-claimed'} : {t:'中奖 · '+w.prizeName, c:'st-win'};
+  }
+  function renderGuests(){
+    const q = ($('guestSearch').value || '').trim().toLowerCase();
+    const body = $('guestBody'); body.innerHTML='';
+    const all = (st.guestList || []);
+    const list = q ? all.filter(g=>
+      (g.name||'').toLowerCase().includes(q) || (g.phone||'').includes(q) ||
+      (g.num||'').includes(q) || (g.wish||'').toLowerCase().includes(q)) : all;
+    $('guestEmpty').style.display = list.length ? 'none':'block';
+    $('guestCount').textContent = q ? ('匹配 '+list.length+' / 共 '+all.length+' 位宾客') : ('共 '+all.length+' 位宾客');
+    list.forEach(g=>{
+      const tr = document.createElement('tr');
+      const t = new Date(g.ts);
+      const timeTxt = (t.getMonth()+1)+'/'+t.getDate()+' '+('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2);
+      const ws = winnerStatusOf(g.num);
+      tr.innerHTML = '<td class="num">'+g.num+'</td><td>'+esc(g.name)+'</td><td>'+g.phone+'</td>' +
+        '<td style="max-width:220px;word-break:break-all">'+esc(g.wish||'—')+'</td>' +
+        '<td style="white-space:nowrap">'+timeTxt+'</td>' +
+        '<td>'+(ws ? '<span class="st '+ws.c+'">'+esc(ws.t)+'</span>' : '<span style="color:var(--ink-soft);font-size:12px">待开奖</span>')+'</td>';
+      body.appendChild(tr);
+    });
+  }
+  $('guestSearch').addEventListener('input', ()=>{ if (st) renderGuests(); });
+  function renderPrizes(){
+    const list = $('prizeList'); list.innerHTML='';
+    prizes().forEach(p=>{
+      const rem = remaining(p);
+      const el = document.createElement('div');
+      el.className = 'prize-item' + (p.id===selPrizeId?' sel':'') + (rem<=0?' done':'');
+      el.innerHTML = '<span class="dot"></span><span class="nm">'+esc(p.name)+'</span>' +
+        '<span class="ds">'+esc(p.desc||'（未填写奖品内容）')+' · 每轮 '+p.perRound+' 名</span>' +
+        '<span class="pg">'+drawnOf(p.id)+' / '+p.count+'</span>';
+      el.addEventListener('click', ()=>{
+        if (phase==='rolling' || p.id===selPrizeId) return;
+        selPrizeId = p.id;
+        if (phase==='revealed'){          // 上一轮已揭晓 → 切奖项即回到待抽状态
+          phase='idle'; roundWinners=[];
+          $('chips').innerHTML='';
+          $('btnIdle').style.display='none'; $('btnRedraw').style.display='none';
+        }
+        renderPrizes(); renderRoundLine();
+      });
+      list.appendChild(el);
+    });
+  }
+  function renderRoundLine(){
+    const p = prize();
+    if (!p){ $('roundLine').innerHTML = '请选择要抽取的奖项'; return; }
+    const rem = remaining(p);
+    if (rem<=0){ $('roundLine').innerHTML = p.name+' 已全部抽出'; return; }
+    const cnt = roundCount(p);
+    $('roundLine').innerHTML = '下一轮：<b>'+esc(p.name)+'</b> 第 '+roundNo(p)+' 轮，抽出 <b>'+cnt+'</b> 名（剩余 '+rem+' 名）';
+  }
+  function renderChips(){
+    const box = $('chips'); box.innerHTML='';
+    roundWinners.forEach(w=>{
+      const el = document.createElement('div');
+      el.className='chip';
+      el.innerHTML = '<span class="num">'+w.num+'</span><span>'+esc(w.name)+'</span>' +
+        (w.status==='void' ? '<span style="color:#9A8B78;font-size:12px">已弃奖</span>'
+          : '<button>弃奖</button>');
+      const btn = el.querySelector('button');
+      if (btn) btn.addEventListener('click', ()=>voidWinner(w.id));
+      box.appendChild(el);
+    });
+  }
+  function renderRecords(){
+    const body = $('recordBody'); body.innerHTML='';
+    const ws = st.winners.slice().sort((a,b)=>b.ts-a.ts);
+    $('recordEmpty').style.display = ws.length ? 'none':'block';
+    ws.forEach(w=>{
+      const tr = document.createElement('tr');
+      if (w.status==='void') tr.className='row-void';
+      const t = new Date(w.ts);
+      const hh = ('0'+t.getHours()).slice(-2), mm=('0'+t.getMinutes()).slice(-2), ss=('0'+t.getSeconds()).slice(-2);
+      const stMap = {win:'<span class="st st-win">中奖</span>', claimed:'<span class="st st-claimed">已兑奖</span>', void:'<span class="st st-void">已弃奖</span>'};
+      tr.innerHTML = '<td>'+hh+':'+mm+':'+ss+'</td><td>'+esc(w.prizeName)+'</td>' +
+        '<td class="num">'+w.num+'</td><td>'+esc(w.name)+'</td><td>'+w.phone+'</td><td>'+w.code+'</td>' +
+        '<td>'+stMap[w.status]+'</td><td></td>';
+      const ops = tr.lastChild;
+      if (w.status==='win'){
+        const b1 = mkBtn('兑奖', async ()=>{ await WL.setWinnerStatus(w.id,'claimed'); refresh(); });
+        const b2 = mkBtn('弃奖', ()=>voidWinner(w.id));
+        ops.appendChild(b1); ops.appendChild(document.createTextNode(' ')); ops.appendChild(b2);
+      } else if (w.status==='claimed'){
+        ops.appendChild(mkBtn('取消兑奖', async ()=>{ await WL.setWinnerStatus(w.id,'win'); refresh(); }));
+      }
+      body.appendChild(tr);
+    });
+  }
+  function mkBtn(txt, fn){ const b=document.createElement('button'); b.className='mini-btn'; b.textContent=txt; b.addEventListener('click',fn); return b; }
+  function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+
+  async function voidWinner(id){
+    if (!confirm('确认弃奖？该号码将回到号码池，可当场补抽。')) return;
+    await WL.setWinnerStatus(id,'void');
+    toast('已弃奖，号码回到号码池');
+    const w = roundWinners.find(x=>x.id===id);
+    if (w) w.status = 'void';
+    refresh(); renderChips();
+    if (phase==='revealed') $('btnRedraw').style.display='inline-flex';
+  }
+
+  /* ---------- 抽奖流程 ---------- */
+  $('btnRoll').addEventListener('click', async ()=>{
+    const p = prize();
+    if (!p) return toast('请先选择奖项');
+    await refresh();                       // 开抽前拉一次最新快照
+    if (remaining(p)<=0) return toast(p.name+' 已全部抽出');
+    const cnt = roundCount(p);
+    if (st.pool < cnt) return toast('号码池人数不足（当前 '+st.pool+' 人）');
+    curRoundLabel = String(roundNo(p));
+    curCount = cnt;
+    phase = 'rolling';
+    await WL.command({t:'roll', prizeId:p.id, prizeName:p.name, prizeDesc:p.desc,
+      round:curRoundLabel, count:cnt, poolSize:st.pool,
+      names:(st.poolNames||[])});
+    $('btnRoll').disabled = true; $('btnStop').disabled = false;
+    $('btnIdle').style.display='none'; $('btnRedraw').style.display='none';
+    renderRoundLine();
+  });
+
+  $('btnStop').addEventListener('click', async ()=>{
+    const p = prize(); if (!p) return;
+    const r = await WL.draw(p.id, curCount, curRoundLabel);   // 服务端原子抽取并落库
+    if (r.error){ toast(r.error); return; }
+    roundWinners = r.winners;
+    phase = 'revealed';
+    $('btnRoll').disabled = false; $('btnStop').disabled = true;
+    $('btnIdle').style.display='inline-flex'; $('btnRedraw').style.display='inline-flex';
+    refresh(); renderChips();
+    toast('已定格 '+r.winners.length+' 名，中奖号码即时锁定');
+  });
+
+  $('btnRedraw').addEventListener('click', async ()=>{
+    const p = prize(); if (!p) return;
+    if (remaining(p)<=0) return toast(p.name+' 已全部抽出');
+    await refresh();
+    if (st.pool < 1) return toast('号码池已空');
+    curRoundLabel = '补抽'; curCount = 1;      // 定格时按补抽 1 名落库
+    phase = 'rolling';
+    await WL.command({t:'roll', prizeId:p.id, prizeName:p.name, prizeDesc:p.desc,
+      round:'补抽', count:1, poolSize:st.pool, names:(st.poolNames||[])});
+    $('btnRoll').disabled = true; $('btnStop').disabled = false;
+    $('btnRedraw').style.display='none'; $('btnIdle').style.display='none';
+    renderRoundLine();
+  });
+
+  $('btnIdle').addEventListener('click', async ()=>{
+    phase='idle'; roundWinners=[];
+    await WL.command({t:'idle'});
+    $('btnIdle').style.display='none'; $('btnRedraw').style.display='none';
+    $('chips').innerHTML=''; refresh();
+  });
+
+  /* ---------- 导出 / 链接 / 重置 ---------- */
+  $('btnExportWin').addEventListener('click', ()=>{
+    const url = WL.exportUrl('winners');
+    if (url){ window.open(url, '_blank'); return; }
+    if (!st || !st.winners.length) return toast('暂无中奖记录');
+    const rows = [['时间','奖项','奖品','号码','姓名','手机号','防伪码','状态']];
+    const stMap = {win:'中奖',claimed:'已兑奖',void:'已弃奖'};
+    st.winners.forEach(w=>rows.push([new Date(w.ts).toLocaleString('zh-CN'), w.prizeName, w.prizeDesc, w.num, w.name, w.phone, w.code, stMap[w.status]]));
+    WL.downloadCSV('中奖记录.csv', rows);
+  });
+  $('btnExportGuests').addEventListener('click', ()=>{
+    const url = WL.exportUrl('guests');
+    if (url){ window.open(url, '_blank'); return; }
+    if (!st || !st.guestList || !st.guestList.length) return toast('暂无登记宾客');
+    const rows = [['序号','号码','姓名','手机号','祝福语','登记时间']];
+    st.guestList.forEach((g,i)=>rows.push([i+1, g.num, g.name, g.phone, g.wish||'', new Date(g.ts).toLocaleString('zh-CN')]));
+    WL.downloadCSV('到场名单.csv', rows);
+  });
+  $('regLink').value = location.href.replace(/admin\.html.*$/,'register.html');
+  $('btnCopy').addEventListener('click', ()=>{
+    $('regLink').select(); document.execCommand('copy');
+    navigator.clipboard && navigator.clipboard.writeText($('regLink').value).catch(()=>{});
+    toast('领券链接已复制');
+  });
+  $('btnReset').addEventListener('click', async ()=>{
+    if (!confirm('确认清空全部宾客与中奖数据？此操作不可恢复。')) return;
+    if (!confirm('再次确认：清空后号码将从 No.001 重新发放。')) return;
+    await WL.resetAll(); phase='idle'; roundWinners=[]; $('chips').innerHTML='';
+    toast('数据已清空'); refresh();
+  });
+
+  /* 数据变化（宾客登记 / 他端操作）时刷新统计 */
+  WL.onMessage(m=>{ if (m.t==='data' && WL.getPass()) refresh(); });
+})();
+</script>
+</body>
+</html>

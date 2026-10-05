@@ -1,0 +1,5 @@
+data.db*
+data_backup.json
+server.log
+nohup.out
+__pycache__/

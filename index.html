@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>黄继安 &amp; 聂玮婷 · 婚礼抽奖</title>
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  body{background:var(--ivory)}
+  .page{padding:8vh 22px 60px;justify-content:flex-start}
+  .crest{text-align:center;position:relative;z-index:2}
+  .crest .m{font-family:var(--serif);font-size:min(20vw,96px);line-height:1;color:var(--ink);margin-top:2vh}
+  .crest .m em{font-style:italic;color:var(--gold);font-size:.72em;padding:0 .08em}
+  .crest .n{font-family:var(--serif);font-size:min(5.4vw,26px);letter-spacing:.34em;text-indent:.34em;margin-top:2.2vh}
+  .crest .d{font-size:12px;letter-spacing:.46em;text-indent:.46em;color:var(--ink-soft);margin-top:1.2vh}
+  .menu{
+    width:100%;max-width:520px;margin-top:6vh;display:flex;flex-direction:column;gap:14px;z-index:2;
+  }
+  .entry{
+    display:flex;align-items:center;gap:18px;background:var(--paper);
+    border:1px solid var(--hairline);border-radius:6px;padding:20px 24px;
+    text-decoration:none;color:var(--ink);transition:all .3s ease;box-shadow:var(--shadow-soft);
+    position:relative;overflow:hidden;
+  }
+  .entry::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:#FBF4E4;
+    transition:width .35s ease;z-index:0;
+  }
+  .entry:hover::before{width:100%}
+  .entry:hover{border-color:var(--gold)}
+  .entry > *{position:relative;z-index:1}
+  .entry .no{
+    font-family:var(--serif);font-size:26px;color:transparent;-webkit-text-stroke:1px var(--gold);
+    width:44px;flex:none;letter-spacing:.02em;
+  }
+  .entry .tt{font-family:var(--serif);font-size:19px;letter-spacing:.18em}
+  .entry .ss{font-size:12px;color:var(--ink-soft);letter-spacing:.1em;margin-top:3px}
+  .entry .go{margin-left:auto;color:var(--gold);font-family:var(--serif);font-size:20px}
+  .guide{
+    width:100%;max-width:520px;margin-top:5vh;background:var(--paper);
+    border:1px solid var(--hairline);border-radius:6px;padding:24px 26px;z-index:2;
+  }
+  .guide h2{font-family:var(--serif);font-size:15px;letter-spacing:.24em;margin-bottom:14px}
+  .guide ol{margin-left:1.2em;font-size:13px;color:var(--ink-soft);line-height:2.2;letter-spacing:.05em}
+  .guide ol b{color:var(--ink);font-weight:600}
+  .footer{margin-top:6vh;text-align:center;font-size:11px;letter-spacing:.3em;color:var(--ink-soft);z-index:2}
+  .sprig{position:fixed;bottom:-20px;opacity:.5;z-index:1}
+  .sprig.l{left:-30px;transform:rotate(18deg)}
+  .sprig.r{right:-30px;transform:scaleX(-1) rotate(18deg)}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="crest">
+    <div class="eyebrow">THE WEDDING OF</div>
+    <div class="m">H<em>&amp;</em>N</div>
+    <div class="n" id="names">黄继安 · 聂玮婷</div>
+    <div class="d" id="date">2026.10.25</div>
+    <div class="hairline"></div>
+  </div>
+
+  <div class="menu">
+    <a class="entry" href="register.html">
+      <span class="no">01</span>
+      <span><span class="tt">宾客领券</span><div class="ss">扫桌卡二维码进入 · 填姓名手机号领号码券</div></span>
+      <span class="go">→</span>
+    </a>
+    <a class="entry" href="screen.html">
+      <span class="no">02</span>
+      <span><span class="tt">抽奖大屏</span><div class="ss">连接 LED / 投影全屏展示 · 滚动与定格动画</div></span>
+      <span class="go">→</span>
+    </a>
+    <a class="entry" href="admin.html">
+      <span class="no">03</span>
+      <span><span class="tt">控制台</span><div class="ss">主持人操作 · 开始 / 定格 / 弃奖重抽 / 兑奖导出</div></span>
+      <span class="go">→</span>
+    </a>
+    <a class="entry" href="config.html">
+      <span class="no">04</span>
+      <span><span class="tt">奖项配置</span><div class="ss">奖项名称 / 名额 / 每轮人数 / 婚礼信息</div></span>
+      <span class="go">→</span>
+    </a>
+  </div>
+
+  <div class="guide">
+    <h2>使用流程</h2>
+    <ol>
+      <li><b>启动服务</b>：在项目目录运行 <code>python3 server.py</code>（零依赖），natapp 穿透到该端口，宾客手机即可扫码访问。</li>
+      <li><b>婚礼前</b>：进入「奖项配置」设好奖项（默认 10 名：特 1 / 一 2 / 二 3 / 三 4）；演练后用控制台「清空数据」。</li>
+      <li><b>宾客入场</b>：把「宾客领券」链接做成二维码印在桌卡上，宾客扫码领券、截图保存，号码实时汇总到服务器。</li>
+      <li><b>抽奖环节</b>：任意电脑打开「抽奖大屏」连 LED 全屏；你的手机/平板开「控制台」操作，大屏无任何按钮，实时联动。</li>
+      <li><b>兑奖</b>：中奖者出示号码券截图，工作人员核对防伪码，在控制台打勾「兑奖」。</li>
+      <li><b>结束后</b>：控制台一键导出中奖记录 + 到场名单 CSV；全部数据在 data.db / data_backup.json。</li>
+    </ol>
+  </div>
+
+  <div class="footer">HUANG &amp; NIE · 囍 · WEDDING LOTTERY</div>
+</div>
+
+<!-- 金色枝叶装饰 -->
+<div class="sprig l"><svg width="180" height="320" viewBox="0 0 180 320" class="botanical"><g fill="none" stroke="#B98E4E" stroke-width="1.1" stroke-linecap="round"><path d="M90 310 C 84 220, 96 130, 90 20"/><ellipse cx="66" cy="250" rx="26" ry="10" transform="rotate(-38 66 250)"/><ellipse cx="114" cy="220" rx="26" ry="10" transform="rotate(38 114 220)"/><ellipse cx="62" cy="180" rx="24" ry="9" transform="rotate(-32 62 180)"/><ellipse cx="116" cy="150" rx="24" ry="9" transform="rotate(32 116 150)"/><ellipse cx="70" cy="108" rx="20" ry="8" transform="rotate(-26 70 108)"/><ellipse cx="110" cy="80" rx="20" ry="8" transform="rotate(26 110 80)"/><circle cx="90" cy="34" r="6"/></g></svg></div>
+<div class="sprig r"><svg width="180" height="320" viewBox="0 0 180 320" class="botanical"><g fill="none" stroke="#B98E4E" stroke-width="1.1" stroke-linecap="round"><path d="M90 310 C 84 220, 96 130, 90 20"/><ellipse cx="66" cy="250" rx="26" ry="10" transform="rotate(-38 66 250)"/><ellipse cx="114" cy="220" rx="26" ry="10" transform="rotate(38 114 220)"/><ellipse cx="62" cy="180" rx="24" ry="9" transform="rotate(-32 62 180)"/><ellipse cx="116" cy="150" rx="24" ry="9" transform="rotate(32 116 150)"/><ellipse cx="70" cy="108" rx="20" ry="8" transform="rotate(-26 70 108)"/><ellipse cx="110" cy="80" rx="20" ry="8" transform="rotate(26 110 80)"/><circle cx="90" cy="34" r="6"/></g></svg></div>
+
+<script src="assets/js/storage.js"></script>
+<script>
+(function(){
+  const cfg = WL.getConfig();
+  document.getElementById('names').textContent = cfg.groom + ' · ' + cfg.bride;
+  document.getElementById('date').textContent = cfg.date + (cfg.venue ? ' · ' + cfg.venue : '');
+})();
+</script>
+</body>
+</html>
