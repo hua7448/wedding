@@ -1,5 +1,10 @@
+# 运行时数据（含宾客手机号等隐私，严禁入库）
 data.db*
 data_backup.json
 server.log
 nohup.out
+
+# 系统杂项
+.DS_Store
 __pycache__/
+*.pyc

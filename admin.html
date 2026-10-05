@@ -200,6 +200,14 @@
   const $ = id => document.getElementById(id);
   const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); };
 
+  /* ---------- 状态（必须先于密码门声明，enter()/refresh() 可能在 let 初始化前触发） ---------- */
+  let st = null;            // 服务器快照 {guests,pool,winners,prizeDrawn,config,guestList}
+  let selPrizeId = null;
+  let phase = 'idle';       // idle | rolling | revealed | redraw
+  let roundWinners = [];    // 本轮中奖记录（完整对象）
+  let curRoundLabel = '';
+  let curCount = 0;
+
   /* ---------- 密码门 ---------- */
   await WL.ready;
   $('modeNote').textContent = WL.mode()==='server'
@@ -216,14 +224,7 @@
   }
   function enter(){ $('gate').classList.add('hide'); $('app').style.visibility='visible'; refresh(); }
 
-  /* ---------- 状态 ---------- */
-  let st = null;            // 服务器快照 {guests,pool,winners,prizeDrawn,config,guestList}
-  let selPrizeId = null;
-  let phase = 'idle';       // idle | rolling | revealed | redraw
-  let roundWinners = [];    // 本轮中奖记录（完整对象）
-  let curRoundLabel = '';
-  let curCount = 0;
-
+  /* ---------- 状态派生 ---------- */
   function prizes(){ return st ? st.config.prizes : []; }
   function prize(){ return prizes().find(p=>p.id===selPrizeId); }
   function drawnOf(pid){ return (st && st.prizeDrawn[pid]) || 0; }
