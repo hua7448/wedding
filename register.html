@@ -145,6 +145,9 @@
     letter-spacing:.2em;line-height:2.1;
   }
   .shot-tip b{color:var(--red)}
+  /* 券面态：压缩页边距，配合 JS 缩放实现免滚动截图 */
+  body.ticket-mode .page{padding:10px 0 8px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+  body.ticket-mode .ticket-wrap{padding-top:6px}
   /* 枝叶装饰 */
   .sprig{position:absolute;z-index:1;opacity:.55}
 </style>
@@ -235,36 +238,55 @@
   const toast = (msg)=>{ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); };
   const showErr = (msg)=>{ const e=document.getElementById('errBox'); e.textContent=msg; e.classList.add('show'); };
 
-  /* 券面素材池：每个号码固定抽到同一组（重扫不变，不同号码不同款）
+  /* 券面款式池：照片与 Q 版卡通一一配对（同一照片的卡通版），
+     每个号码固定抽中同一款（重扫不变，不同号码不同款）。
      pos = 背景图纵向焦点（按每张图的构图逐张标定，保证新人面部在可视区） */
-  const CARTOONS = ['cartoon','cartoon2','cartoon3','cartoon4','cartoon5','cartoon6',
-                    'cartoon7','cartoon8','cartoon9','cartoon10','cartoon11']
-                    .map(n=>'assets/img/'+n+'.jpg');
-  const TICKET_BGS = [
-    {src:'assets/img/poster.jpg', pos:'center 20%'},   // 红底囍字海报：面部在上部
-    {src:'assets/img/bg1.jpg',    pos:'center 22%'},   // 树下亲吻：面部偏上
-    {src:'assets/img/bg2.jpg',    pos:'center 58%'},   // 草坪挥手：人物在中下段
-    {src:'assets/img/bg3.jpg',    pos:'center 38%'},   // 牵手奔跑（横图）：人物中段
-    {src:'assets/img/bg4.jpg',    pos:'center 38%'},   // 依偎：人物中段偏上
+  const STYLES = [
+    {bg:'assets/img/poster.jpg', pos:'center 20%', cartoon:'assets/img/cartoon.jpg'},   // 红底囍字 ↔ 囍字卡通
+    {bg:'assets/img/bg1.jpg',    pos:'center 22%', cartoon:'assets/img/cartoon2.jpg'},  // 树下亲吻 ↔ 亲吻卡通
+    {bg:'assets/img/bg2.jpg',    pos:'center 58%', cartoon:'assets/img/cartoon3.jpg'},  // 草坪挥手 ↔ 挥手卡通
+    {bg:'assets/img/bg3.jpg',    pos:'center 38%', cartoon:'assets/img/cartoon5.jpg'},  // 牵手奔跑 ↔ 奔跑卡通
+    {bg:'assets/img/bg4.jpg',    pos:'center 38%', cartoon:'assets/img/cartoon6.jpg'},  // 草坪依偎 ↔ 依偎卡通
   ];
-  function pickByNum(arr, num){
+  function styleOf(num){
     const n = parseInt(num, 10);
-    return arr[(isNaN(n)?0:n) % arr.length];
+    return STYLES[(isNaN(n)?0:n) % STYLES.length];
   }
 
+  /* 一屏自适应：券面整体缩放，保证任何手机免滚动截全图 */
+  function fitTicket(){
+    const w = document.getElementById('ticketWrap');
+    w.style.transform = ''; w.style.marginBottom = '';
+    const avail = window.innerHeight - 20;
+    const h = w.offsetHeight;
+    if (h > avail){
+      const s = avail / h;
+      w.style.transformOrigin = 'top center';
+      w.style.transform = 'scale(' + s.toFixed(4) + ')';
+      w.style.marginBottom = (-Math.round(h*(1-s))) + 'px';  // 抵消缩放后的占位，防止页面仍可滚动
+    }
+  }
+  window.addEventListener('resize', ()=>{ if (document.getElementById('ticketWrap').classList.contains('show')) fitTicket(); });
+
   function renderTicket(g, existed){
-    const bg = pickByNum(TICKET_BGS, g.num);
+    const st = styleOf(g.num);
     const photoEl = document.querySelector('#ticketCard .ticket-photo');
-    photoEl.style.backgroundImage = 'url("'+bg.src+'")';
-    photoEl.style.backgroundPosition = bg.pos;
-    document.querySelector('#ticketCard .avatar img').src = pickByNum(CARTOONS, g.num);
+    photoEl.style.backgroundImage = 'url("'+st.bg+'")';
+    photoEl.style.backgroundPosition = st.pos;
+    document.querySelector('#ticketCard .avatar img').src = st.cartoon;
     document.getElementById('tkNum').textContent = g.num;
     document.getElementById('tkNumCap').textContent = 'No.' + g.num;
     document.getElementById('tkStubNum').textContent = 'No.' + g.num;
     document.getElementById('tkName').textContent = g.name;
     document.getElementById('tkCode').textContent = g.code;
     document.getElementById('formCard').style.display = 'none';
+    document.getElementById('heroBox').style.display = 'none';   // 券面态隐藏页头，一屏放下
+    document.body.classList.add('ticket-mode');
     document.getElementById('ticketWrap').classList.add('show');
+    // 入场动画的 fill:both 会覆盖内联 transform，等动画结束后再缩放
+    const tw = document.getElementById('ticketWrap');
+    tw.addEventListener('animationend', ()=>{ tw.style.animation = 'none'; fitTicket(); }, {once:true});
+    requestAnimationFrame(fitTicket);
     if (existed) toast('您已领取过号码券，这是您的那一张');
     window.scrollTo({top:0, behavior:'smooth'});
   }
