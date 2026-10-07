@@ -30,6 +30,12 @@
     position:absolute;inset:0;background-size:cover;background-position:center 30%;
     opacity:0;transition:opacity 2.2s ease;transform:scale(1.04);
   }
+  /* 竖屏照片：完整照片居中 + 同款照片铺满作底（压暗），横屏不再裁掉人物 */
+  .idle .slide.portrait{
+    background-size:contain,100% 100%,cover;
+    background-position:center,center,center 30%;
+    background-repeat:no-repeat,no-repeat,no-repeat;
+  }
   .idle .slide.on{opacity:1;animation:kenburns 9s ease forwards}
   @keyframes kenburns{from{transform:scale(1.04)}to{transform:scale(1.12)}}
   .idle::before{
@@ -148,10 +154,10 @@
 
 <!-- 待机态 -->
 <div class="idle" id="idle">
-  <div class="slide on" style="background-image:url('assets/img/scene1.jpg')"></div>
-  <div class="slide" style="background-image:url('assets/img/scene2.jpg')"></div>
-  <div class="slide" style="background-image:url('assets/img/scene3.jpg')"></div>
-  <div class="slide" style="background-image:url('assets/img/scene4.jpg')"></div>
+  <div class="slide on portrait" data-img="assets/img/scene1.jpg"></div>
+  <div class="slide" data-img="assets/img/scene2.jpg"></div>
+  <div class="slide portrait" data-img="assets/img/scene3.jpg"></div>
+  <div class="slide" data-img="assets/img/scene4.jpg"></div>
   <div class="idle-center">
     <div class="eyebrow eb">THE WEDDING OF</div>
     <div class="m">H<em>&amp;</em>N</div>
@@ -228,6 +234,13 @@
 
   /* ---------- 待机轮播 ---------- */
   const slides = Array.from(document.querySelectorAll('.idle .slide'));
+  // 竖屏照片铺三层：完整照片(contain) + 压暗层 + 同款照片铺满(cover)作底
+  slides.forEach(s=>{
+    const img = s.dataset.img;
+    s.style.backgroundImage = s.classList.contains('portrait')
+      ? `url('${img}'),linear-gradient(rgba(28,17,9,.55),rgba(28,17,9,.55)),url('${img}')`
+      : `url('${img}')`;
+  });
   let slideIdx = 0;
   setInterval(()=>{
     slides[slideIdx].classList.remove('on');
